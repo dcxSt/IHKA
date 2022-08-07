@@ -26,6 +26,8 @@ The submodule `sm_make_wavelet_bank` is comprised of a pure function (`compute_w
 ![wavelet_transforms_demo.png](img/wavelet_transforms_demo.png)
 
 ## Features 
+([Here](https://asp-eurasipjournals.springeropen.com/articles/10.1186/1687-6180-2014-183) is a good place to find features to implement.)
+
 The following is a visualisation of an example feature set, computed for a 24h mouse IHKA recording firth 4 electrodes. Three sets of features are computed: 
 (1) The mean power of each frequency channel, these are the leftmost columns that look like noise. 
 (2) The variance, these are the four central column patterns, we can easily spot the the seizures here. 
@@ -54,6 +56,19 @@ Module dependency graph.
 Function dependency graph.
 
 ![function dependencies](flow_charts/function_dependencies.png)
+
+## Discussion of Code
+#### Bottlenecks
+One difficulty encountered when trying to put this pipeline onto an Azure VM, with the database stored on blob storage is that the featurizing code makes many calls to the binary data (one for each window / data sample). As such, it would become a bottleneck when featurizing the dataset. One workaround suggested would be to load seizure binary files (10GB) into RAM and then featurize them. This would required building upon the `binary_io.py` module. 
+
+#### Size Matters (?)
+Currently, the preprocessing step is to take our `.edf` data and serialize a 20 channel complex-number wavelet filter bank sampled at 2000Hz. Each filtered channel is scaled appropriately, then stored as two 16bit integer channels (one for the amplitude and one for the phase). Here are some ways we could reduce the size of the database:
+1. Instead of serializing wavelet transforms, we could just compute hamming windowed FFTs on the fly while featurizing. This would required 40x less storage, and FFTs on small windows are not so expensive. (Window sizes are typically 2000Hz x 5s = 10000 data points. If we want to get more bang for our buck we could even use segment lengths that amount to power of 2 number of samples, e.g. 2^14=16384 and 2^13=8192)
+2. We could potentially down-sample by up to 5x. Currently the highest frequency wavelet used is 200Hz, the nyquist frequency is 5x greater. 
+
+If both of these methods are used, that would reduce the size of our database by 200x. The disadvantage of the first suggestion are twofold: (1) we would no longer have log-spaced wavelets and our low-frequency resolution would suffer (because FFTs output linearly spaced conv bands). (2) this might increase featurizing computation times. The disadvantage of the second suggestion is that if, in the future, we decide that higher freq bands contain valuable information, we don't want to have thrown that away. 
+
+
 
 ## TODO
 *This list is ordered from highest to lowest priority.*
@@ -123,9 +138,11 @@ Displayed below is a 100-datapoint chunk of the output of `sm_make_wavelet_bank.
 ![sample from sm_make_wavelet_bank.make_wavelet_bank](https://raw.githubusercontent.com/dcxSt/IHKApy/main/img/wavelet_transforms_demo.png)
 
 ### Refs
+- [EEG seizure detection and prediction algorithms: a survey (2014)](https://asp-eurasipjournals.springeropen.com/articles/10.1186/1687-6180-2014-183). This one is a good resource to figure out which features to implement. 
 - Article on IHKA [https://www.sciencedirect.com/science/article/abs/pii/S001448862030323X](https://www.sciencedirect.com/science/article/abs/pii/S001448862030323X) 
 - Writing good pythonic python: [PEP8](https://pep8.org/#break-before-or-after-binary-operator)
 - [Guide to python packaging (the docs)](https://python-packaging.readthedocs.io/en/latest/dependencies.html)
 - Classification / training links
   - [imbalanced ensemble training python tutorial](https://imbalanced-ensemble.readthedocs.io/en/latest/auto_examples/basic/plot_basic_example.html) 
+
 
