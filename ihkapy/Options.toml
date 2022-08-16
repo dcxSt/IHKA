@@ -1,24 +1,30 @@
 # Previously ops variable in MatLab scripts
 
 [fio]
+# The directory that contains .edf data-files and .txt metadata files
+# This program will only read files from this folder. 
 RAW_DATA_PATH = "/Users/steve/Documents/code/unm/data/h24_data/raw"
+# The directory where the wavelet bank 16bit ints binaries are stored
+# There are written to when the raw data is initially processed, then 
+# read from when the data gets featurized. 
 WAVELET_BINARIES_PATH = "/Users/steve/Documents/code/unm/data/h24_data/binaries"
+# This is where the pandas data-frames of features get stored (as csvs). 
 FEATURES_PATH = "/Users/steve/Documents/code/unm/data/h24_data/features"
 CLASSIFIER_OUTPUT_PATH = "/Users/steve/Documents/code/unm/data/h24_data/models"
 
 [params.data]
-FS = 2000                         # Sample frequency in Hz
-NUM_FREQ = 20                     # number of frequencies to sample
-LOW_FREQ = 0.5                    # lowest freq to sample
-HIGH_FREQ = 200                   # highest freq to sample
-SPACING = "LOGARITHMIC"           # can only be "LOGARITHMIC" or "LINEAR"
-ZSCORE_POWER = true               # bool, if true zscore the power
-SCALE_RAW = 1000                  # scale factor exploit int16 range
-SCALE_PHASE = 1000                # scale factor exploit int16 range
-SCALE_POWER = 1000                # scale factor exploit int16 range
-N_CHAN_RAW = 4                    # Number of raw channels in .edf files
-CH_PHASE_AMP = 2                  # Select the channel for which to 
-                                  # compute phase-amplitude correlation
+FS = 2000                   # Sample frequency in Hz
+NUM_FREQ = 20               # number of frequencies to sample
+LOW_FREQ = 0.5              # lowest freq to sample
+HIGH_FREQ = 200             # highest freq to sample
+SPACING = "LOGARITHMIC"     # can only be "LOGARITHMIC" or "LINEAR"
+ZSCORE_POWER = true         # bool, if true zscore the power
+SCALE_RAW = 1000            # scale factor exploit int16 range
+SCALE_PHASE = 1000          # scale factor exploit int16 range
+SCALE_POWER = 1000          # scale factor exploit int16 range
+N_CHAN_RAW = 4              # Number of raw channels in .edf files
+CH_PHASE_AMP = 2            # Select the channel for which to compute
+                            # phase-amplitude correlation against
 TS_FEATURES = ["wavelet_power","wavelet_phase"] # Select what to compute
 N_CHAN_BINARY = 41                # = len(TS_FEATURES) * NUM_FREQ + 1
                                   # 1 + 20 + 20 = raw + amp + phase
